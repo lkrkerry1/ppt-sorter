@@ -5,11 +5,6 @@ __pycache__/
 # Virtual environment
 .venv/
 
-# Deployment and test artifacts
-deployment_model.joblib
-test.pptx
-tests/tmp/
-
 # Editor directories and files
 .vscode/
 .idea/
