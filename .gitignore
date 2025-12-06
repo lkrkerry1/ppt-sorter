@@ -8,6 +8,7 @@ __pycache__/
 # Deployment and test artifacts
 deployment_model.joblib
 test.pptx
+tests/tmp/
 
 # Editor directories and files
 .vscode/

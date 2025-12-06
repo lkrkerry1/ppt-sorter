@@ -21,8 +21,8 @@ if ROOT not in sys.path:
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 
-from model_compressor import ModelCompressor
-from ultralight_classifier import UltraLightPPTClassifier
+from src.model_compressor import ModelCompressor
+from src.ultralight_classifier import UltraLightPPTClassifier
 
 
 def make_fake_pptx(path, text="数学 科学"):
@@ -61,11 +61,13 @@ def main():
     # 使用 index->label 列表，确保压缩后能被正确解析
     comp.label_mapping = ["语文", "数学", "英语", "物理", "化学", "生物"]
 
-    out_path = "deployment_model.joblib"
+    out_dir = os.path.join("tests", "tmp")
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "deployment_model.joblib")
     comp.compress_for_deployment(clf, vect, X, y, out_path, top_k=50)
 
     print("生成伪 PPTX 并运行预测...")
-    pptx_path = "test.pptx"
+    pptx_path = os.path.join(out_dir, "test.pptx")
     # 使用与训练样本中一致的短语以触发关键词匹配（中文示例）
     make_fake_pptx(pptx_path, text="这是一份数学课件")
 
