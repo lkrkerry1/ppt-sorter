@@ -17,36 +17,61 @@
 
 - [PPT Sorter](#ppt-sorter)
   - [目录](#目录)
-    - [上手指南](#上手指南)
-          - [开发前的配置要求](#开发前的配置要求)
-          - [**安装步骤**](#安装步骤)
-    - [文件目录说明](#文件目录说明)
-    - [贡献者](#贡献者)
+  - [特点](#特点)
+  - [快速开始](#快速开始)
+    - [训练阶段（需要GPU/高性能CPU）](#训练阶段需要gpu高性能cpu)
+      - [准备数据：将PPT按学科放入data/raw/对应目录](#准备数据将ppt按学科放入dataraw对应目录)
+      - [训练模型](#训练模型)
+      - [部署阶段](#部署阶段)
+  - [文件目录说明](#文件目录说明)
+  - [贡献者](#贡献者)
       - [如何参与开源项目](#如何参与开源项目)
-    - [版本控制](#版本控制)
-    - [鸣谢](#鸣谢)
-
-### 上手指南
-
-请将所有链接中的“lkrkerry1/ppt-sorter”改为“your_github_name/your_repository”
-
-**轻量化部署方案**：本仓库包含一个面向“训练机强、部署机弱”场景的详细优化方案（训练端模型压缩、知识蒸馏与部署端极简推理），详见 `docs/optimization_plan.md`。
+  - [版本控制](#版本控制)
+  - [鸣谢](#鸣谢)
 
 
+## 特点
+- 🚀 **双阶段优化**：强训练机训练，弱部署机运行
+- 📦 **模型极小**：部署模型<10MB，内存占用<50MB
+- ⚡ **推理快速**：单个PPT分类<1秒
+- 🎯 **准确率高**：充足样本下>85%准确率
+- 🔧 **易部署**：无需GPU，Python基础环境即可运行
 
-###### 开发前的配置要求
 
-1. python 3.14
+## 快速开始
 
-###### **安装步骤**
+### 训练阶段（需要GPU/高性能CPU）
+```bash
+# 安装依赖
+pip install -r requirements_train.txt
+```
 
-从release中下载
+#### 准备数据：将PPT按学科放入data/raw/对应目录
 
-### 文件目录说明
+#### 训练模型
+```bash
+python train/train_main.py
+```
 
-...
+#### 部署阶段
+```bash
+# 安装轻量依赖
+pip install -r requirements_deploy.txt
 
-### 贡献者
+# 检查环境
+python deploy/check_environment.py
+
+# 运行分类器
+python deploy/deploy_main.py path/to/your.pptx
+
+# 批量处理
+python scripts/batch_classify.py --input folder/with/ppts --output results.csv
+```
+
+## 文件目录说明
+见 `architecture.md`
+
+## 贡献者
 
 #### 如何参与开源项目
 
@@ -61,12 +86,12 @@
 
 
 
-### 版本控制
+## 版本控制
 
 该项目使用Git进行版本管理。您可以在repository参看当前可用版本。
 
 
-### 鸣谢
+## 鸣谢
 
 - [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
 - [Img Shields](https://shields.io)

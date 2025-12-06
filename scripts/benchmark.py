@@ -1,7 +1,11 @@
-"""基准测试占位脚本。"""
+#!/usr/bin/env python3
+"""基准测试脚本。"""
+
+from typing import Dict, Any
 
 
-def run_benchmark():
+def run_benchmark() -> None:
+    """运行基准测试（占位）"""
     print("运行基准测试（占位）")
 
 
