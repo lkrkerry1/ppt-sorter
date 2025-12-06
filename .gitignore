@@ -1,3 +1,24 @@
+# Byte-compiled / package files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+
+# Deployment and test artifacts
+deployment_model.joblib
+test.pptx
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Python testing
+.pytest_cache/
+
+# OS files
+.DS_Store
+Thumbs.db
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
