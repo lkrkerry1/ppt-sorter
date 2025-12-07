@@ -50,7 +50,7 @@ class ModelCompressor:
                 importances = np.abs(model.coef_)
 
             # 选择top_k特征
-            k = min(200, X_sample.shape[1])
+            k = min(300, X_sample.shape[1])
             top_indices = np.argsort(importances)[-k:]
         else:
             # 默认保留所有特征
