@@ -93,7 +93,7 @@ def check_system_compatibility() -> str:
             checks.append((f"库: {lib}", "✗", False))
 
     # 7. 可选库
-    optional_libs = ["python-pptx", "psutil", "tqdm"]
+    optional_libs = ["pptx", "psutil", "tqdm"]
     for lib in optional_libs:
         try:
             __import__(lib.replace("-", "_"))

@@ -31,7 +31,7 @@ class ModelBuilder:
 
         Args:
             X: 特征矩阵
-            y: 标签
+            y: 标签（应为数值标签）
             n_estimators: 树的数量
             use_gpu: 是否使用GPU
 
@@ -39,6 +39,10 @@ class ModelBuilder:
             训练好的模型
         """
         print("   正在训练XGBoost教师模型...")
+
+        # 确保y是整数类型
+        if y.dtype.kind not in ("i", "u"):  # 如果不是整数类型
+            y = y.astype(int)
 
         # XGBoost参数
         params = {
@@ -55,13 +59,15 @@ class ModelBuilder:
         # GPU加速（如果可用）
         if use_gpu:
             try:
-                import xgboost as xgb
-
-                params["tree_method"] = "gpu_hist"
-                params["gpu_id"] = 0
-                print("   使用GPU加速训练")
+                # 关键修改点：移除 'gpu_id'，添加 'device' 和 'tree_method'
+                params["device"] = "cuda"  # 或 "gpu"，新参数用于指定设备[citation:4]
+                params["tree_method"] = (
+                    "hist"  # 或 "gpu_hist"，指定使用GPU的算法[citation:9]
+                )
+                print("   使用GPU加速训练 (XGBoost >= 3.1)")
             except:
                 print("   警告: GPU不可用，回退到CPU")
+        # 如果 use_gpu 为 False，则无需指定 device，默认使用 CPU
 
         # 训练模型
         model = XGBClassifier(**params)
@@ -77,13 +83,17 @@ class ModelBuilder:
 
         Args:
             X: 特征矩阵
-            y: 标签
+            y: 标签（应为数值标签）
             model_type: 模型类型 ('logistic', 'random_forest', 'lightgbm')
 
         Returns:
             训练好的模型
         """
         print(f"   正在训练{model_type}学生模型...")
+
+        # 确保y是整数类型
+        if y.dtype.kind not in ("i", "u"):  # 如果不是整数类型
+            y = y.astype(int)
 
         if model_type == "logistic":
             model = LogisticRegression(
@@ -141,5 +151,6 @@ class ModelBuilder:
             info["n_features"] = model.n_features_in_
         if hasattr(model, "classes_"):
             info["n_classes"] = len(model.classes_)
+            info["classes"] = model.classes_.tolist()
 
         return info

@@ -20,6 +20,11 @@ from train.knowledge_distiller import KnowledgeDistiller
 from train.model_compressor import ModelCompressor
 from utils.data_loader import PPTDataset
 from utils.evaluation import ModelEvaluator
+from sklearn.preprocessing import LabelEncoder  # 添加导入
+
+# 设置代理（如果需要）
+os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
+os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
 
 
 def parse_args() -> argparse.Namespace:
@@ -58,15 +63,34 @@ def main() -> int:
         test_size=args.test_size, random_state=42
     )
 
-    # 转换为numpy数组
-    import numpy as np
+    # 创建标签编码器
+    label_encoder = LabelEncoder()
+    label_encoder.fit(SUBJECTS)  # 使用SUBJECTS顺序编码
 
-    y_train_np = np.array(y_train)
-    y_test_np = np.array(y_test)
+    # 转换为数值标签
+    y_train_np = label_encoder.transform(y_train)
+    y_test_np = label_encoder.transform(y_test)
 
     print(f"   训练集: {len(X_train)} 个样本")
     print(f"   测试集: {len(X_test)} 个样本")
-    print(f"   学科分布: {dict(zip(*np.unique(y_train_np, return_counts=True)))}")
+
+    # 显示标签映射关系
+    print(
+        f"   标签映射关系: {dict(zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)))}"
+    )
+
+    import numpy as np
+
+    unique_labels, counts = np.unique(y_train_np, return_counts=True)
+    label_names = label_encoder.inverse_transform(unique_labels)
+    distribution = dict(zip(label_names, counts))
+    print(f"   学科分布: {distribution}")
+
+    # 保存标签编码器
+    import joblib
+
+    joblib.dump(label_encoder, str(MODELS_DIR / "label_encoder.joblib"))
+    print(f"   标签编码器已保存到: {MODELS_DIR / 'label_encoder.joblib'}")
 
     # 第2步：特征提取
     print("\n2. 特征提取...")
@@ -83,14 +107,42 @@ def main() -> int:
     builder = ModelBuilder()
     teacher_model = builder.train_teacher_model(
         X_train_features,
-        y_train_np,  # 使用numpy数组
+        y_train_np,  # 使用数值标签
         n_estimators=TrainConfig.TEACHER_N_ESTIMATORS,
         use_gpu=args.use_gpu,
     )
 
-    # 评估教师模型
-    evaluator = ModelEvaluator(teacher_model, SUBJECTS)
-    teacher_acc = evaluator.evaluate(X_test_features, y_test_np)  # 使用numpy数组
+    # 评估教师模型 - 使用数值标签
+    evaluator = ModelEvaluator(
+        teacher_model, SUBJECTS
+    )  # 在 train_main.py 的评估部分前添加：
+
+    print(f"\n特征维度检查:")
+    print(f"  训练特征维度: {X_train_features.shape}")
+    print(f"  测试特征维度: {X_test_features.shape}")
+
+    # 如果维度不匹配，尝试截断或填充
+    if X_train_features.shape[1] != X_test_features.shape[1]:
+        print(f"  警告: 特征维度不匹配!")
+
+        # 取最小维度
+        min_dim = min(X_train_features.shape[1], X_test_features.shape[1])
+
+        # 如果测试特征维度太大，截断
+        if X_test_features.shape[1] > min_dim:
+            X_test_features = X_test_features[:, :min_dim]
+            print(f"  截断测试特征到 {min_dim} 维")
+
+        # 如果测试特征维度太小，填充零
+        elif X_test_features.shape[1] < min_dim:
+            padding = np.zeros(
+                (X_test_features.shape[0], min_dim - X_test_features.shape[1])
+            )
+            X_test_features = np.hstack([X_test_features, padding])
+            print(f"  填充测试特征到 {min_dim} 维")
+
+    # 现在评估模型
+    teacher_acc = evaluator.evaluate(X_test_features, y_test_np)
     print(f"   教师模型准确率: {teacher_acc:.4f}")
 
     # 保存教师模型
@@ -101,15 +153,13 @@ def main() -> int:
     distiller = KnowledgeDistiller(teacher_model)
     student_model = distiller.distill(
         X_train_features,
-        y_train_np,
-        temperature=TrainConfig.DISTILLATION_TEMPERATURE,  # 使用numpy数组
+        y_train_np,  # 使用数值标签
+        temperature=TrainConfig.DISTILLATION_TEMPERATURE,
     )
 
     # 评估学生模型
     student_evaluator = ModelEvaluator(student_model, SUBJECTS)
-    student_acc = student_evaluator.evaluate(
-        X_test_features, y_test_np
-    )  # 使用numpy数组
+    student_acc = student_evaluator.evaluate(X_test_features, y_test_np)
     print(f"   学生模型准确率: {student_acc:.4f}")
     print(f"   准确率下降: {(teacher_acc - student_acc):.4f}")
 
@@ -122,20 +172,27 @@ def main() -> int:
     if args.compress:
         print("\n5. 模型压缩...")
         compressor = ModelCompressor()
-        compressed_model = compressor.compress(
-            student_model,
-            X_train_features[:100],  # 使用少量样本进行压缩优化
-            output_path=str(MODELS_DIR / "deployment_model.joblib"),
+        # 1. 调用compress，得到的是包含模型的字典
+        compressed_data = (
+            compressor.compress(  # 变量名改为compressed_data，表明它是字典
+                student_model,
+                X_train_features[
+                    :100
+                ],  # 注意：这里使用了原特征，但压缩器内部可能选择了部分特征
+                output_path=str(MODELS_DIR / "deployment_model.joblib"),
+            )
         )
 
-        # 测试压缩模型
-        compressed_evaluator = ModelEvaluator(compressed_model, SUBJECTS)
-        compressed_acc = compressed_evaluator.evaluate(
-            X_test_features, y_test_np
-        )  # 使用numpy数组
-        print(f"   压缩模型准确率: {compressed_acc:.4f}")
+        # 2. 从字典中取出真正的模型对象
+        # 根据你的 model_compressor.py，模型在键 "model" 下
+        compressed_model = compressed_data[
+            "model"
+        ]  # 这是具有 .predict() 方法的模型对象
 
-        # 检查模型大小
+        # 3. 使用取出的模型进行评估
+        compressed_evaluator = ModelEvaluator(compressed_model, SUBJECTS)
+        compressed_acc = compressed_evaluator.evaluate(X_test_features, y_test_np)
+
         model_size = (
             os.path.getsize(MODELS_DIR / "deployment_model.joblib") / 1024 / 1024
         )
@@ -159,8 +216,6 @@ def main() -> int:
 
 if __name__ == "__main__":
     try:
-        import numpy as np
-
         sys.exit(main())
     except Exception as e:
         print(f"训练过程中出错: {str(e)}")

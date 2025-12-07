@@ -64,7 +64,10 @@ class UltraLightPPTClassifier:
                 model_data = joblib.load(model_path)
 
             # 提取模型组件
-            self.model = model_data.get("model")
+            try:
+                self.model = model_data.get("model")
+            except AttributeError:
+                self.model = model_data
             self.feature_indices = model_data.get("feature_indices", None)
             self.keyword_matcher = model_data.get(
                 "keyword_matcher", self.keyword_matcher

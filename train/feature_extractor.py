@@ -32,6 +32,10 @@ class AdvancedFeatureExtractor:
         self.vectorizer: Optional[TfidfVectorizer] = None
         self.selector: Optional[SelectKBest] = None
         self.feature_names: Optional[np.ndarray] = None  # 修改为np.ndarray类型
+        # 新增：保存特征选择后的索引
+        self.selected_indices: Optional[np.ndarray] = None
+        # 新增：标记是否添加了深度学习特征
+        self.deep_features_added: bool = False
 
         # 深度学习模型（可选）
         self.deep_model = None
@@ -91,9 +95,35 @@ class AdvancedFeatureExtractor:
             deep_features = self._extract_deep_features(texts)
             features = np.hstack([features, deep_features])
 
-        # 特征选择
-        if mode == "train" and features.shape[1] > TrainConfig.SELECTED_FEATURES:
-            features = self._select_features(features)
+        # 特征选择（仅在训练时进行，测试时使用相同的选择）
+        if mode == "train":
+            original_dim = features.shape[1]
+            if original_dim > TrainConfig.SELECTED_FEATURES:
+                print(f"   特征选择: {original_dim} -> {TrainConfig.SELECTED_FEATURES}")
+                features = self._select_features(features)
+            else:
+                # 如果特征数小于SELECTED_FEATURES，保存所有索引
+                self.selected_indices = np.arange(original_dim)
+        elif mode == "test":
+            # 测试时使用训练时选择的索引
+            if self.selected_indices is not None:
+                if features.shape[1] != len(self.selected_indices):
+                    # 如果测试特征维度和训练时不匹配，尝试对齐
+                    if features.shape[1] > len(self.selected_indices):
+                        # 假设测试特征包含更多特征，使用训练时选择的索引
+                        if max(self.selected_indices) < features.shape[1]:
+                            features = features[:, self.selected_indices]
+                            print(f"   使用训练特征选择: {features.shape[1]}维")
+                        else:
+                            print(f"   警告: 特征索引超出范围，跳过特征选择")
+                    else:
+                        print(
+                            f"   警告: 测试特征维度({features.shape[1]})小于训练特征索引数({len(self.selected_indices)})"
+                        )
+            else:
+                print(
+                    f"   警告: 没有训练特征选择器，使用原始特征: {features.shape[1]}维"
+                )
 
         return features
 
