@@ -1,0 +1,6 @@
+{
+    "data":"data",
+    "raw_data":"raw",
+    "processed_data":"processed",
+    "keywords_file":"processed/subject_keywords.json"
+}
