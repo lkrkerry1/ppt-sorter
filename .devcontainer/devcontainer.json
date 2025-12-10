@@ -1,0 +1,31 @@
+{
+    "name": "Python 3.10.19 Development",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-python.black-formatter",
+                "ms-azuretools.vscode-docker"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": true,
+                "python.formatting.provider": "black",
+                "python.languageServer": "Pylance",
+                "terminal.integrated.defaultProfile.linux": "bash"
+            }
+        }
+    },
+    "postCreateCommand": "echo 'Environment ready!' && python --version",
+    "remoteUser": "root",
+    "features": {
+        "git": "latest",
+        "github-cli": "latest"
+    }
+}
