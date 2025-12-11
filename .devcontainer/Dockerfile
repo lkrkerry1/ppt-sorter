@@ -35,8 +35,6 @@ RUN grep -v "torch" requirements_train.txt > requirements_remaining.txt && \
     pip install -r requirements_remaining.txt && \
     rm requirements_remaining.txt
 
-# 清理pip缓存
-RUN pip cache purge
 
 # 设置默认命令
 CMD ["/bin/bash"]
