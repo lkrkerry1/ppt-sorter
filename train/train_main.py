@@ -13,7 +13,14 @@ from typing import Optional
 # 添加项目根目录到Python路径
 sys.path.append(str(Path(__file__).parent.parent))
 
-from config import TrainConfig, DeployConfig, SUBJECTS, MODELS_DIR
+from config import (
+    TrainConfig,
+    SUBJECTS,
+    TEACHER_MODEL_PATH,
+    STUDENT_MODEL_PATH,
+    DEPLOYMENT_MODEL_PATH,
+    LABEL_MODEL_PATH,
+)
 from train.feature_extractor import AdvancedFeatureExtractor
 from train.model_builder import ModelBuilder
 from train.knowledge_distiller import KnowledgeDistiller
@@ -76,7 +83,8 @@ def main() -> int:
 
     # 显示标签映射关系
     print(
-        f"   标签映射关系: {dict(zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)))}"
+        f"   标签映射关系: {dict(zip(label_encoder.classes_, 
+                               label_encoder.transform(label_encoder.classes_)))}"  # type:ignore
     )
 
     import numpy as np
@@ -89,8 +97,8 @@ def main() -> int:
     # 保存标签编码器
     import joblib
 
-    joblib.dump(label_encoder, str(MODELS_DIR / "label_encoder.joblib"))
-    print(f"   标签编码器已保存到: {MODELS_DIR / 'label_encoder.joblib'}")
+    joblib.dump(label_encoder, str(LABEL_MODEL_PATH))
+    print(f"   标签编码器已保存到: {LABEL_MODEL_PATH}")
 
     # 第2步：特征提取
     print("\n2. 特征提取...")
@@ -107,7 +115,7 @@ def main() -> int:
     builder = ModelBuilder()
     teacher_model = builder.train_teacher_model(
         X_train_features,
-        y_train_np,  # 使用数值标签
+        y_train_np,  # type:ignore # 使用数值标签 
         n_estimators=TrainConfig.TEACHER_N_ESTIMATORS,
         use_gpu=args.use_gpu,
     )
@@ -142,29 +150,29 @@ def main() -> int:
             print(f"  填充测试特征到 {min_dim} 维")
 
     # 现在评估模型
-    teacher_acc = evaluator.evaluate(X_test_features, y_test_np)
+    teacher_acc = evaluator.evaluate(X_test_features, y_test_np) # type:ignore
     print(f"   教师模型准确率: {teacher_acc:.4f}")
 
     # 保存教师模型
-    builder.save_model(teacher_model, str(MODELS_DIR / "teacher_model.joblib"))
+    builder.save_model(teacher_model, str(TEACHER_MODEL_PATH))
 
     # 第4步：知识蒸馏
     print("\n4. 知识蒸馏...")
     distiller = KnowledgeDistiller(teacher_model)
     student_model = distiller.distill(
         X_train_features,
-        y_train_np,  # 使用数值标签
+        y_train_np,  # 使用数值标签 # type:ignore
         temperature=TrainConfig.DISTILLATION_TEMPERATURE,
     )
 
     # 评估学生模型
     student_evaluator = ModelEvaluator(student_model, SUBJECTS)
-    student_acc = student_evaluator.evaluate(X_test_features, y_test_np)
+    student_acc = student_evaluator.evaluate(X_test_features, y_test_np) # type:ignore
     print(f"   学生模型准确率: {student_acc:.4f}")
     print(f"   准确率下降: {(teacher_acc - student_acc):.4f}")
 
     # 保存学生模型
-    builder.save_model(student_model, str(MODELS_DIR / "student_model.joblib"))
+    builder.save_model(student_model, str(STUDENT_MODEL_PATH))
 
     # 第5步：模型压缩（可选）
     compressed_acc: Optional[float] = None
@@ -179,7 +187,7 @@ def main() -> int:
                 X_train_features[
                     :100
                 ],  # 注意：这里使用了原特征，但压缩器内部可能选择了部分特征
-                output_path=str(MODELS_DIR / "deployment_model.joblib"),
+                output_path=str(DEPLOYMENT_MODEL_PATH),
             )
         )
 
@@ -191,11 +199,8 @@ def main() -> int:
 
         # 3. 使用取出的模型进行评估
         compressed_evaluator = ModelEvaluator(compressed_model, SUBJECTS)
-        compressed_acc = compressed_evaluator.evaluate(X_test_features, y_test_np)
-
-        model_size = (
-            os.path.getsize(MODELS_DIR / "deployment_model.joblib") / 1024 / 1024
-        )
+        compressed_acc = compressed_evaluator.evaluate(X_test_features, y_test_np) # type:ignore
+        model_size = os.path.getsize(DEPLOYMENT_MODEL_PATH) / 1024 / 1024
         print(f"   模型大小: {model_size:.2f} MB")
 
     print("\n" + "=" * 60)
