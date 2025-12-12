@@ -69,7 +69,10 @@ def main() -> int:
     X_train, X_test, y_train, y_test = dataset.load_train_test_split(
         test_size=args.test_size, random_state=42
     )
-
+    print(f" X_train: {X_train}")
+    print(f" y_train: {y_train}")
+    print(f" X_test: {X_test}")
+    print(f" y_test: {y_test}")
     # 创建标签编码器
     label_encoder = LabelEncoder()
     label_encoder.fit(SUBJECTS)  # 使用SUBJECTS顺序编码
@@ -83,8 +86,7 @@ def main() -> int:
 
     # 显示标签映射关系
     print(
-        f"   标签映射关系: {dict(zip(label_encoder.classes_, 
-                               label_encoder.transform(label_encoder.classes_)))}"  # type:ignore
+        f"   标签映射关系: {dict(zip(label_encoder.classes_, label_encoder.transform(label_encoder.classes_)))}"  # type:ignore
     )
 
     import numpy as np
@@ -115,7 +117,7 @@ def main() -> int:
     builder = ModelBuilder()
     teacher_model = builder.train_teacher_model(
         X_train_features,
-        y_train_np,  # type:ignore # 使用数值标签 
+        y_train_np,  # type:ignore # 使用数值标签
         n_estimators=TrainConfig.TEACHER_N_ESTIMATORS,
         use_gpu=args.use_gpu,
     )
@@ -150,7 +152,7 @@ def main() -> int:
             print(f"  填充测试特征到 {min_dim} 维")
 
     # 现在评估模型
-    teacher_acc = evaluator.evaluate(X_test_features, y_test_np) # type:ignore
+    teacher_acc = evaluator.evaluate(X_test_features, y_test_np)  # type:ignore
     print(f"   教师模型准确率: {teacher_acc:.4f}")
 
     # 保存教师模型
@@ -167,7 +169,7 @@ def main() -> int:
 
     # 评估学生模型
     student_evaluator = ModelEvaluator(student_model, SUBJECTS)
-    student_acc = student_evaluator.evaluate(X_test_features, y_test_np) # type:ignore
+    student_acc = student_evaluator.evaluate(X_test_features, y_test_np)  # type:ignore
     print(f"   学生模型准确率: {student_acc:.4f}")
     print(f"   准确率下降: {(teacher_acc - student_acc):.4f}")
 
@@ -199,7 +201,9 @@ def main() -> int:
 
         # 3. 使用取出的模型进行评估
         compressed_evaluator = ModelEvaluator(compressed_model, SUBJECTS)
-        compressed_acc = compressed_evaluator.evaluate(X_test_features, y_test_np) # type:ignore
+        compressed_acc = compressed_evaluator.evaluate(
+            X_test_features, y_test_np
+        )  # type:ignore
         model_size = os.path.getsize(DEPLOYMENT_MODEL_PATH) / 1024 / 1024
         print(f"   模型大小: {model_size:.2f} MB")
 
