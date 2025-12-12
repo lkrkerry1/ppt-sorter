@@ -13,7 +13,7 @@ from typing import List, Tuple, Optional, Any
 # 添加项目根目录到Python路径
 sys.path.append(str(Path(__file__).parent.parent))
 
-from config import MODELS_DIR, DEPLOYMENT_MODEL_PATH
+from config import DEPLOYMENT_MODEL_PATH
 from deploy.ultra_light_classifier import UltraLightPPTClassifier
 from deploy.memory_guard import MemoryGuard
 from deploy.check_environment import check_system_compatibility
