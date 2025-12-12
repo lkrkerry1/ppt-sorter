@@ -33,7 +33,7 @@ RUN pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1
 # 安装其他依赖（排除已安装的torch相关包）
 # 创建一个临时文件，排除已安装的torch包
 RUN grep -av torch requirements_train.txt > requirements_remaining.txt
-RUN pip install --root-user-action -r requirements_remaining.txt 
+RUN pip install -r requirements_remaining.txt 
 RUN rm requirements_remaining.txt
 
 # 设置默认命令
