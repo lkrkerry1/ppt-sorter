@@ -10,7 +10,16 @@
                 "ms-python.python",
                 "ms-python.vscode-pylance",
                 "ms-python.black-formatter",
-                "ms-azuretools.vscode-docker"
+                "ms-azuretools.vscode-docker",
+                "github.codespaces",
+                "github.copilot",
+                "github.copilot-chat",
+                "github.vscode-pull-request-github",
+                "johnpapa.winteriscoming",
+                "ms-ceintl.vscode-language-pack-zh-hans",
+                "ms-python.debugpy",
+                "yzhang.markdown-all-in-one",
+                "vscode-icons-team.vscode-icons"
             ],
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
@@ -18,7 +27,14 @@
                 "python.linting.pylintEnabled": true,
                 "python.formatting.provider": "black",
                 "python.languageServer": "Pylance",
-                "terminal.integrated.defaultProfile.linux": "bash"
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "editor.formatOnSave": true,
+                "files.autoSave": "onFocusChange",
+                "workbench.colorTheme": "Winter is Coming (Dark Blue)",
+                "workbench.iconTheme": "vscode-icons",
+                "git.confirmSync": false,
+                "git.enableSmartCommit": true,
+                "python.analysis.typeCheckingMode": "standard"
             }
         }
     },
