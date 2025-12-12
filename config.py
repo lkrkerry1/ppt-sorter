@@ -49,6 +49,7 @@ class TrainConfig:
     # 特征选择
     SELECTED_FEATURES = configs["train"]["selected_features"]
     KEYWORDS_PER_SUBJECT = configs["train"]["keywords_per_subject"]
+    COMPRESS_DIM = configs["train"]["compress_dim"]
 
 
 # 部署配置
@@ -79,7 +80,8 @@ class KeywordConfig:
     BASE_KEYWORDS: Dict[str, List[str]] = configs["keywords"]["basic"]
 
     # 停用词
-    STOPWORDS: Set[str] = configs["keywords"]["stopwords"]
+    STOPWORDS: Set[str] = set(configs["keywords"]["stopwords"])
+    STOPWORDS_ENG: Set[str] = set(configs["keywords"]["stop_eng"])
 
     # 关键词提取参数
     MIN_WORD_LENGTH = configs["keywords"]["min_word_len"]
