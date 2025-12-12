@@ -5,7 +5,8 @@ FROM python:3.10.19-slim
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     DEBIAN_FRONTEND=noninteractive \
-    PIP_NO_CACHE_DIR=1
+    PIP_NO_CACHE_DIR=1 \
+    PIP_ROOT_USER_ACTION=ignore
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
@@ -31,9 +32,9 @@ RUN pip install torch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1
 
 # 安装其他依赖（排除已安装的torch相关包）
 # 创建一个临时文件，排除已安装的torch包
-RUN grep -av torch requirements_train.txt > requirements_remaining.txt && \
-    pip install -r requirements_remaining.txt --root-user-action && \
-    rm requirements_remaining.txt
+RUN grep -av torch requirements_train.txt > requirements_remaining.txt
+RUN pip install --root-user-action -r requirements_remaining.txt 
+RUN rm requirements_remaining.txt
 
 # 设置默认命令
 CMD ["/bin/bash"]
