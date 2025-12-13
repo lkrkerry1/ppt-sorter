@@ -9,9 +9,8 @@ import xml.etree.ElementTree as ET
 import joblib
 from typing import Tuple, Optional, Dict, List, Any
 import gc
-import warnings
 
-from config import DeployConfig, KeywordConfig, SUBJECTS
+from config import DeployConfig, KeywordConfig, SUBJECTS, LABEL_MODEL_PATH
 from utils.text_processor import TextProcessor
 
 
@@ -34,6 +33,7 @@ class UltraLightPPTClassifier:
         self.text_processor: TextProcessor = TextProcessor()
         self.cache: Dict[str, Tuple[str, float]] = {}
         self.cache_size: int = DeployConfig.CACHE_SIZE
+        self.label_encoder = joblib.load(LABEL_MODEL_PATH)
 
         # 加载模型（如果有）
         if model_path:
@@ -117,7 +117,7 @@ class UltraLightPPTClassifier:
             # 1. 快速文本提取
             text = self._extract_text_fast(ppt_file)
 
-            if not text or len(text) < 20:
+            if not text:
                 return "未知", 0.0
 
             # 2. 关键词快速匹配（第一层）
@@ -130,11 +130,14 @@ class UltraLightPPTClassifier:
                 model_result, model_conf = self._model_predict(text)
 
                 # 综合置信度
-                final_conf = max(model_conf, keyword_conf * 0.3)
-                final_subject = (
-                    model_result if model_conf >= keyword_conf else keyword_result
+                final_subject, final_conf = (
+                    (model_result, model_conf)
+                    if model_conf >= keyword_conf
+                    else (keyword_result, keyword_conf)
                 )
-
+                print(
+                    f"_full_predict: {ppt_file} keyword=({keyword_result},{keyword_conf:.2f}) model=({model_result},{model_conf:.2f}) final=({final_subject},{final_conf:.2f})"
+                )
                 return final_subject, min(final_conf, 0.99)
             else:
                 # 没有模型，返回关键词匹配结果
@@ -217,7 +220,6 @@ class UltraLightPPTClassifier:
         """关键词快速匹配"""
         text_lower = text.lower()
         scores = {}
-
         for subject, keywords in self.keyword_matcher.items():
             # 统计关键词命中数
             count = 0
@@ -240,7 +242,7 @@ class UltraLightPPTClassifier:
 
         # 找到最高分
         best_subject = max(scores.items(), key=lambda x: x[1])
-        return best_subject[0], best_subject[1]
+        return best_subject[0], best_subject[1] * DeployConfig.KEYWORD_APPEND_RATE
 
     def _model_predict(self, text: str) -> Tuple[str, float]:
         """模型预测"""
@@ -260,10 +262,7 @@ class UltraLightPPTClassifier:
                 confidence = float(proba[pred_idx])
 
                 # 获取学科名称
-                if hasattr(self.model, "classes_"):
-                    subject = self.model.classes_[pred_idx]
-                else:
-                    subject = SUBJECTS[pred_idx] if pred_idx < len(SUBJECTS) else "未知"
+                subject = self.label_encoder.inverse_transform([pred_idx])[0]
             else:
                 prediction = self.model.predict(features)[0]
                 subject = str(prediction)

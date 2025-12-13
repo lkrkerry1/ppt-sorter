@@ -14,7 +14,7 @@ def generate_validation_set():
     print("生成验证用PPT...")
     print("=" * 50)
 
-    DATA_DIR = Path("data/validation")
+    DATA_DIR = Path("data/raw")
     generator = PPTGenerator()
 
     validation_topics = {

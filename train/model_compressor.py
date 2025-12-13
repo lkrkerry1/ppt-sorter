@@ -10,7 +10,7 @@ import gzip
 import pickle
 from typing import Any, Dict, List, Optional
 
-from config import DeployConfig, KeywordConfig
+from config import DeployConfig, KeywordConfig, TrainConfig
 
 
 class ModelCompressor:
@@ -50,7 +50,7 @@ class ModelCompressor:
                 importances = np.abs(model.coef_)
 
             # 选择top_k特征
-            k = min(300, X_sample.shape[1])
+            k = min(TrainConfig.COMPRESS_DIM, X_sample.shape[1])
             top_indices = np.argsort(importances)[-k:]
         else:
             # 默认保留所有特征

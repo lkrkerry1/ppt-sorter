@@ -111,41 +111,12 @@ class TextProcessor:
         words = english_text.split()
 
         # 过滤停用词和短词
-        english_stopwords = {
-            "the",
-            "a",
-            "an",
-            "and",
-            "or",
-            "but",
-            "in",
-            "on",
-            "at",
-            "to",
-            "for",
-            "of",
-            "with",
-            "by",
-            "is",
-            "are",
-            "was",
-            "were",
-            "be",
-            "been",
-            "being",
-            "have",
-            "has",
-            "had",
-            "do",
-            "does",
-            "did",
-        }
 
         filtered_words = [
             word
             for word in words
             if (
-                word.lower() not in english_stopwords
+                word.lower() not in KeywordConfig.STOPWORDS_ENG
                 and len(word) >= 3
                 and not word.isdigit()
             )

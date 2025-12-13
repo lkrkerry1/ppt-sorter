@@ -4,13 +4,10 @@
 """
 
 import numpy as np
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.feature_selection import SelectKBest, chi2
-from collections import Counter
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_selection import SelectKBest
 import re
-import jieba
-from typing import List, Dict, Tuple, Optional, Union, Any
-import warnings
+from typing import List, Dict, Tuple, Optional, Any
 
 from config import TrainConfig, KeywordConfig
 from utils.text_processor import TextProcessor
@@ -36,6 +33,7 @@ class AdvancedFeatureExtractor:
         self.selected_indices: Optional[np.ndarray] = None
         # 新增：标记是否添加了深度学习特征
         self.deep_features_added: bool = False
+        self.bert_model: Optional[Any] = None
 
         # 深度学习模型（可选）
         self.deep_model = None
@@ -120,10 +118,6 @@ class AdvancedFeatureExtractor:
                         print(
                             f"   警告: 测试特征维度({features.shape[1]})小于训练特征索引数({len(self.selected_indices)})"
                         )
-            else:
-                print(
-                    f"   警告: 没有训练特征选择器，使用原始特征: {features.shape[1]}维"
-                )
 
         return features
 
