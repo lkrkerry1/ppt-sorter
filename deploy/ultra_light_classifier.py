@@ -130,11 +130,14 @@ class UltraLightPPTClassifier:
                 model_result, model_conf = self._model_predict(text)
 
                 # 综合置信度
-                final_conf = max(model_conf, keyword_conf * 0.3)
-                final_subject = (
-                    model_result if model_conf >= keyword_conf else keyword_result
+                final_subject, final_conf = (
+                    (model_result, model_conf)
+                    if model_conf >= keyword_conf
+                    else (keyword_result, keyword_conf)
                 )
-                # print(f"testing {ppt_file}: {final_subject}")
+                print(
+                    f"_full_predict: {ppt_file} keyword=({keyword_result},{keyword_conf:.2f}) model=({model_result},{model_conf:.2f}) final=({final_subject},{final_conf:.2f})"
+                )
                 return final_subject, min(final_conf, 0.99)
             else:
                 # 没有模型，返回关键词匹配结果
@@ -240,7 +243,7 @@ class UltraLightPPTClassifier:
 
         # 找到最高分
         best_subject = max(scores.items(), key=lambda x: x[1])
-        return best_subject[0], best_subject[1]
+        return best_subject[0], best_subject[1] * DeployConfig.KEYWORD_APPEND_RATE
 
     def _model_predict(self, text: str) -> Tuple[str, float]:
         """模型预测"""

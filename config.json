@@ -18,10 +18,10 @@
         "生物"
     ],
     "train": {
-        "max_features": 1000,
+        "max_features": 1500,
         "min_df": 2,
         "max_df": 0.9,
-        "ngram_max": 3,
+        "ngram_max": 4,
         "ngram_min": 1,
         "teacher_n_estimators": 100,
         "teacher_max_depth": 6,
@@ -29,9 +29,9 @@
         "temperature": 2.0,
         "student_max_iter": 500,
         "student_c": 0.3,
-        "selected_features": 2000,
-        "keywords_per_subject": 50,
-        "compress_dim": 2000
+        "selected_features": 20000,
+        "keywords_per_subject": 150,
+        "compress_dim": 20000
     },
     "deploy": {
         "max_memory_mb": 1500,
@@ -40,7 +40,8 @@
         "cache_size": 100,
         "enable_cache": true,
         "compression_level": 9,
-        "quantization": "float16"
+        "quantization": "float16",
+        "keyword_append_rate": 1.5
     },
     "keywords": {
         "basic": {

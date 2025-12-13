@@ -8,7 +8,7 @@ from typing import Dict, List, Set, Any
 
 # 项目根目录
 BASE_DIR: Path = Path(__file__).parent
-f = open(BASE_DIR / "config.json")
+f = open(BASE_DIR / "config.json", encoding="utf-8")
 configs: Dict[str, Any] = json.load(f)
 
 
@@ -70,6 +70,7 @@ class DeployConfig:
     # 模型压缩
     COMPRESSION_LEVEL = configs["deploy"]["compression_level"]  # 0-9，9为最高压缩
     QUANTIZATION = configs["deploy"]["quantization"]  # 量化精度
+    KEYWORD_APPEND_RATE = configs["deploy"]["keyword_append_rate"]  # 关键词增强比例
 
 
 # 关键词配置

@@ -69,10 +69,6 @@ def main() -> int:
     X_train, X_test, y_train, y_test = dataset.load_train_test_split(
         test_size=args.test_size, random_state=42
     )
-    print(f" X_train: {X_train}")
-    print(f" y_train: {y_train}")
-    print(f" X_test: {X_test}")
-    print(f" y_test: {y_test}")
     # 创建标签编码器
     label_encoder = LabelEncoder()
     label_encoder.fit(SUBJECTS)  # 使用SUBJECTS顺序编码
