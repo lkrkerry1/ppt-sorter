@@ -220,7 +220,6 @@ class UltraLightPPTClassifier:
         """关键词快速匹配"""
         text_lower = text.lower()
         scores = {}
-
         for subject, keywords in self.keyword_matcher.items():
             # 统计关键词命中数
             count = 0

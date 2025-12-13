@@ -2,7 +2,7 @@
 配置文件 - 集中管理所有参数
 """
 
-import json
+import json, os
 from pathlib import Path
 from typing import Dict, List, Set, Any
 
@@ -21,6 +21,7 @@ TEACHER_MODEL_PATH: Path = BASE_DIR / configs["models"]["teacher"]
 STUDENT_MODEL_PATH: Path = BASE_DIR / configs["models"]["student"]
 DEPLOYMENT_MODEL_PATH: Path = BASE_DIR / configs["models"]["deploy"]
 LABEL_MODEL_PATH: Path = BASE_DIR / configs["models"]["label"]
+KEYWORD_MODEL_PATH: Path = BASE_DIR / configs["models"]["keyword"]
 
 # 学科列表
 SUBJECTS: List[str] = ["语文", "数学", "英语", "物理", "化学", "生物"]
@@ -105,6 +106,15 @@ def check_directories() -> None:
     for directory in directories:
         directory.mkdir(parents=True, exist_ok=True)
         print(f"✓ 目录已就绪: {directory}")
+    if os.path.exists(KEYWORD_MODEL_PATH):
+        print(f"加载关键词文件: {KEYWORD_MODEL_PATH}")
+        with open(KEYWORD_MODEL_PATH, "r", encoding="utf-8") as f:
+            KeywordConfig.BASE_KEYWORDS = json.load(f)
+            print(
+                f"✓ 关键词已加载，共 {sum(len(v) for v in KeywordConfig.BASE_KEYWORDS.values())} 个关键词"
+            )
+    else:
+        print(f"警告: 关键词文件不存在 - {KEYWORD_MODEL_PATH}, 将使用默认关键词配置")
 
 
 # 初始化检查
